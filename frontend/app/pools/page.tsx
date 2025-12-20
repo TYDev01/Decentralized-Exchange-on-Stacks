@@ -1,4 +1,5 @@
 import { AddLiquidity } from "@/components/add-liquidity";
+import { ChainhookRegister } from "@/components/chainhook-register";
 import { CreatePool } from "@/components/create-pool";
 import { PoolsList } from "@/components/pools";
 import { RemoveLiquidity } from "@/components/remove-liquidity";
@@ -21,6 +22,7 @@ export default async function Pools() {
           ? ` (latest: ${chainhookSummary.latestAction})`
           : ""}
       </div>
+      <ChainhookRegister />
       <PoolsList pools={allPools} />
       <hr />
       <div className="flex justify-center gap-8">
