@@ -33,6 +33,7 @@ CHAINHOOK_NETWORK=testnet
 ```
 
 Notes:
+- `CHAINHOOK_URL` defaults to the SDK's built-in base URL for `CHAINHOOK_NETWORK` if omitted.
 - `CHAINHOOK_API_KEY` is optional.
 - `CHAINHOOK_CALLBACK_URL` should be reachable by the Chainhook service.
 

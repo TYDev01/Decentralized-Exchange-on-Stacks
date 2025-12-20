@@ -3,14 +3,16 @@ import {
   buildContractLogHook,
   createChainhookClient,
 } from "@/lib/chainhook";
+import { CHAINHOOKS_BASE_URL } from "@hirosystems/chainhooks-client";
 
 export async function POST() {
-  const baseUrl = process.env.CHAINHOOK_URL;
+  const network = (process.env.CHAINHOOK_NETWORK ||
+    "testnet") as "mainnet" | "testnet";
+  const baseUrl =
+    process.env.CHAINHOOK_URL || CHAINHOOKS_BASE_URL[network];
   const apiKey = process.env.CHAINHOOK_API_KEY;
   const contractId = process.env.AMM_CONTRACT_ID;
   const callbackUrl = process.env.CHAINHOOK_CALLBACK_URL;
-  const network = (process.env.CHAINHOOK_NETWORK ||
-    "testnet") as "mainnet" | "testnet";
 
   if (!baseUrl || !contractId || !callbackUrl) {
     return NextResponse.json(
