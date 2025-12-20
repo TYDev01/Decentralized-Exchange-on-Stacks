@@ -21,7 +21,7 @@ This list is based on a pass over contracts, tests, and the Next.js frontend. It
 - [x] Restrict `mint` to a contract owner or a set of minters; current version is permissionless.
 - [x] Update `transfer` authorization to allow `contract-caller` as the sender when transfers are initiated by other contracts.
 - [x] Add a `set-token-uri` or `get-token-uri` implementation that returns a usable metadata URI (if desired).
-- [ ] If using multiple mock tokens, split `contracts/mock-token.clar` into separate files and unique token names to avoid confusion in tests/deployment.
+- [x] If using multiple mock tokens, split `contracts/mock-token.clar` into separate files and unique token names to avoid confusion in tests/deployment.
 
 ## Frontend (Hiro Chainhook client usage required)
 
@@ -44,7 +44,7 @@ This list is based on a pass over contracts, tests, and the Next.js frontend. It
 - [x] Add coverage for error paths: incorrect token ordering, pool not found, zero/negative amounts, invalid fee, and division-by-zero conditions.
 - [x] Add swap tests for slippage protection and min-output handling once added.
 - [x] Add tests for initial-liquidity underflow protection and edge rounding cases.
-- [ ] Add tests confirming Chainhook-consumed log payloads are stable (schema snapshot tests).
+- [x] Add tests confirming Chainhook-consumed log payloads are stable (schema snapshot tests).
 
 ## Config & Docs
 
