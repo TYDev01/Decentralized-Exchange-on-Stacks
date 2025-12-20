@@ -212,6 +212,14 @@ describe("AMM Tests", () => {
     expect(removeResult.result).toBeErr(Cl.uint(201));
   });
 
+  it("rejects swaps with zero input amount", () => {
+    createPool();
+    addLiquidity(alice, 1000000, 500000);
+
+    const { result } = swap(alice, 0, true, 0);
+    expect(result).toBeErr(Cl.uint(205));
+  });
+
   it("adds initial liquidity in whatever ratio", () => {
     const createPoolRes = createPool();
     expect(createPoolRes.result).toBeOk(Cl.bool(true));
