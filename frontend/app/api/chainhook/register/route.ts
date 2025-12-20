@@ -9,8 +9,8 @@ export async function POST() {
   const apiKey = process.env.CHAINHOOK_API_KEY;
   const contractId = process.env.AMM_CONTRACT_ID;
   const callbackUrl = process.env.CHAINHOOK_CALLBACK_URL;
-  const chain = (process.env.CHAINHOOK_CHAIN ||
-    "testnet") as "mainnet" | "testnet" | "devnet";
+  const network = (process.env.CHAINHOOK_NETWORK ||
+    "testnet") as "mainnet" | "testnet";
 
   if (!baseUrl || !contractId || !callbackUrl) {
     return NextResponse.json(
@@ -20,8 +20,8 @@ export async function POST() {
   }
 
   const client = createChainhookClient({ baseUrl, apiKey });
-  const hook = buildContractLogHook({ contractId, callbackUrl, chain });
-  await client.register(hook);
+  const hook = buildContractLogHook({ contractId, callbackUrl, network });
+  await client.registerChainhook(hook);
 
   return NextResponse.json({ ok: true });
 }
