@@ -35,6 +35,13 @@ CHAINHOOK_NETWORK=testnet
 Notes:
 - `CHAINHOOK_URL` defaults to the SDK's built-in base URL for `CHAINHOOK_NETWORK` if omitted.
 - `CHAINHOOK_API_KEY` is optional.
+- Local endpoints:
+  - `POST /api/chainhook/register` to register the hook.
+  - `POST /api/chainhook/webhook` is the Chainhook callback target.
+  - `GET /api/chainhook/status` checks API status via SDK.
+  - `GET /api/chainhook/list` lists existing hooks.
+  - `GET /api/chainhook/events?limit=10` reads stored payloads.
+  - `POST /api/chainhook/clear` clears stored payloads.
 - `CHAINHOOK_CALLBACK_URL` should be reachable by the Chainhook service.
 
 ## Learn More

@@ -9,6 +9,7 @@ export function ChainhookRegister() {
   const [message, setMessage] = useState("");
   const [statusInfo, setStatusInfo] = useState<string | null>(null);
   const [listInfo, setListInfo] = useState<string | null>(null);
+  const [clearInfo, setClearInfo] = useState<string | null>(null);
 
   async function registerHook() {
     setStatus("loading");
@@ -80,6 +81,23 @@ export function ChainhookRegister() {
     }
   }
 
+  async function clearEvents() {
+    setClearInfo(null);
+    try {
+      const response = await fetch("/api/chainhook/clear", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) {
+        setClearInfo(data?.error || "Failed to clear events");
+        return;
+      }
+      setClearInfo("Cleared Chainhook events");
+    } catch (error) {
+      setClearInfo(
+        error instanceof Error ? error.message : "Failed to clear events"
+      );
+    }
+  }
+
   return (
     <div className="flex flex-col gap-2 text-sm">
       <div className="flex items-center gap-3">
@@ -105,10 +123,18 @@ export function ChainhookRegister() {
         >
           List Chainhooks
         </button>
+        <button
+          type="button"
+          onClick={clearEvents}
+          className="rounded-md bg-gray-700 px-3 py-2 text-white hover:bg-gray-600"
+        >
+          Clear Events
+        </button>
         {message ? <span className="text-gray-300">{message}</span> : null}
       </div>
       {statusInfo ? <span className="text-gray-400">{statusInfo}</span> : null}
       {listInfo ? <span className="text-gray-400">{listInfo}</span> : null}
+      {clearInfo ? <span className="text-gray-400">{clearInfo}</span> : null}
     </div>
   );
 }
