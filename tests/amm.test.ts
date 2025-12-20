@@ -133,6 +133,24 @@ describe("AMM Tests", () => {
     expect(result2).toBeErr(Cl.uint(200));
   });
 
+  it("rejects invalid fees on pool creation", () => {
+    const zeroFeeResult = simnet.callPublicFn(
+      "amm",
+      "create-pool",
+      [mockTokenOne, mockTokenTwo, Cl.uint(0)],
+      alice
+    );
+    expect(zeroFeeResult.result).toBeErr(Cl.uint(210));
+
+    const maxFeeResult = simnet.callPublicFn(
+      "amm",
+      "create-pool",
+      [mockTokenOne, mockTokenTwo, Cl.uint(10_000)],
+      alice
+    );
+    expect(maxFeeResult.result).toBeErr(Cl.uint(210));
+  });
+
   it("adds initial liquidity in whatever ratio", () => {
     const createPoolRes = createPool();
     expect(createPoolRes.result).toBeOk(Cl.bool(true));
@@ -239,5 +257,27 @@ describe("AMM Tests", () => {
 
     const { result } = removeLiquidity(alice, 706106, 1_000_000_000, 1_000_000_000);
     expect(result).toBeErr(Cl.uint(212));
+  });
+
+  it("tracks pools with on-chain index", () => {
+    const initialCount = simnet.callReadOnlyFn("amm", "get-pool-count", [], alice);
+    expect(initialCount.result).toBeOk(Cl.uint(0));
+
+    createPool();
+
+    const countAfterCreate = simnet.callReadOnlyFn("amm", "get-pool-count", [], alice);
+    expect(countAfterCreate.result).toBeOk(Cl.uint(1));
+
+    const { result: poolId } = getPoolId();
+
+    const poolIndexEntry = simnet.callReadOnlyFn(
+      "amm",
+      "get-pool-id-by-index",
+      [Cl.uint(0)],
+      alice
+    );
+    expect(poolIndexEntry.result).toBeOk(
+      Cl.some(Cl.tuple({ "pool-id": poolId.value }))
+    );
   });
 });
