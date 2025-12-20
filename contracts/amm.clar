@@ -215,6 +215,7 @@
             )
             (amount-0 (get amount-0 amounts))
             (amount-1 (get amount-1 amounts))
+            (initial-liquidity-sqrt (sqrti (* amount-0 amount-1)))
             ;; calculate the new liquidity (L value) 
             (new-liquidity 
                 (if 
@@ -222,7 +223,10 @@
 
                     ;; if this is first-time liquidity, we subtract MINIMUM_LIQUIDITY to make sure that the pool has at least some liquidity forever
                     ;; so we compute L = sqrt(x * y) - MINIMUM_LIQUIDITY
-                    (- (sqrti (* amount-0 amount-1)) MINIMUM_LIQUIDITY)
+                    (begin
+                        (asserts! (> initial-liquidity-sqrt MINIMUM_LIQUIDITY) ERR_INSUFFICIENT_LIQUIDITY_MINTED)
+                        (- initial-liquidity-sqrt MINIMUM_LIQUIDITY)
+                    )
 
                     ;; if it is not the first time, we update L based on how much % of the pool's liquidity this user is adding
                     ;; min( amount0 * pool-liquidity / balance0 , amount1 * pool-liquidity / balance1 )
