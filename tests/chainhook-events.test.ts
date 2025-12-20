@@ -39,7 +39,13 @@ describe("chainhook event parsing", () => {
     ];
 
     const summary = summarizeChainhookPayloads(payloads);
-    expect(summary).toMatchSnapshot();
+    expect(summary).toMatchInlineSnapshot(`
+{
+  "count": 2,
+  "latestAction": "swap",
+  "latestTimestamp": "2025-01-01T00:05:00.000Z",
+}
+`);
     expect(getLatestActions(payloads, 2)).toEqual(["swap", "create-pool"]);
   });
 });
