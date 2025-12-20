@@ -161,6 +161,57 @@ describe("AMM Tests", () => {
     expect(result).toBeErr(Cl.uint(201));
   });
 
+  it("rejects incorrect token ordering for pool actions", () => {
+    createPool();
+    addLiquidity(alice, 1000000, 500000);
+
+    const addResult = simnet.callPublicFn(
+      "amm",
+      "add-liquidity",
+      [
+        mockTokenTwo,
+        mockTokenOne,
+        Cl.uint(500),
+        Cl.uint(1000),
+        Cl.uint(500),
+        Cl.uint(0),
+        Cl.uint(0),
+      ],
+      alice
+    );
+    expect(addResult.result).toBeErr(Cl.uint(201));
+
+    const swapResult = simnet.callPublicFn(
+      "amm",
+      "swap",
+      [
+        mockTokenTwo,
+        mockTokenOne,
+        Cl.uint(500),
+        Cl.uint(1000),
+        Cl.bool(true),
+        Cl.uint(0),
+      ],
+      alice
+    );
+    expect(swapResult.result).toBeErr(Cl.uint(201));
+
+    const removeResult = simnet.callPublicFn(
+      "amm",
+      "remove-liquidity",
+      [
+        mockTokenTwo,
+        mockTokenOne,
+        Cl.uint(500),
+        Cl.uint(1),
+        Cl.uint(0),
+        Cl.uint(0),
+      ],
+      alice
+    );
+    expect(removeResult.result).toBeErr(Cl.uint(201));
+  });
+
   it("adds initial liquidity in whatever ratio", () => {
     const createPoolRes = createPool();
     expect(createPoolRes.result).toBeOk(Cl.bool(true));
