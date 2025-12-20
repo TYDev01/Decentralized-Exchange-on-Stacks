@@ -34,14 +34,14 @@ export function PoolListItem({ pool }: { pool: Pool }) {
       <span>{pool.id}</span>
       <div className="flex items-center gap-2">
         <Link
-          href={`https://explorer.hiro.so/txid/${pool["token-0"]}?chain=testnet`}
+          href={`https://explorer.hiro.so/address/${pool["token-0"]}?chain=testnet`}
           target="_blank"
         >
           {token0Name}
         </Link>{" "}
         /
         <Link
-          href={`https://explorer.hiro.so/txid/${pool["token-1"]}?chain=testnet`}
+          href={`https://explorer.hiro.so/address/${pool["token-1"]}?chain=testnet`}
           target="_blank"
         >
           {token1Name}
