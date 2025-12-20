@@ -14,6 +14,7 @@ export function Swap({ pools }: SwapProps) {
   const [toToken, setToToken] = useState<string>(pools[0]["token-1"]);
   const [fromAmount, setFromAmount] = useState<number>(0);
   const [estimatedToAmount, setEstimatedToAmount] = useState<bigint>(BigInt(0));
+  const [estimateError, setEstimateError] = useState<string | null>(null);
   const [minOutput, setMinOutput] = useState<number>(0);
 
   const uniqueTokens = pools.reduce((acc, pool) => {
@@ -62,6 +63,7 @@ export function Swap({ pools }: SwapProps) {
     if (!pool) return;
 
     if (fromAmount === 0) return;
+    setEstimateError(null);
 
     const x = BigInt(pool["balance-0"]);
     const y = BigInt(pool["balance-1"]);
@@ -70,6 +72,11 @@ export function Swap({ pools }: SwapProps) {
 
     if (fromToken === pool["token-0"]) {
       const deltaX = BigInt(fromAmount);
+      if (deltaX >= x) {
+        setEstimateError("Input exceeds pool balance");
+        setEstimatedToAmount(BigInt(0));
+        return;
+      }
       // (x-dx) * (y+dy) = k
       // y+dy = k/(x-dx)
       // dy = (k/(x-dx)) - y
@@ -84,6 +91,11 @@ export function Swap({ pools }: SwapProps) {
       // x+dx = k/(y-dy)
       // dx = (k/(y-dy)) - x
       const deltaY = BigInt(fromAmount);
+      if (deltaY >= y) {
+        setEstimateError("Input exceeds pool balance");
+        setEstimatedToAmount(BigInt(0));
+        return;
+      }
       const yMinusDeltaY = y - deltaY;
       const xPlusDeltaX = k / yMinusDeltaY;
       const deltaX = xPlusDeltaX - x;
@@ -141,6 +153,9 @@ export function Swap({ pools }: SwapProps) {
       </div>
 
       <span>Estimated Output: {estimatedToAmount.toString()}</span>
+      {estimateError ? (
+        <span className="text-sm text-red-400">{estimateError}</span>
+      ) : null}
       <div className="flex flex-col gap-1">
         <span className="font-bold">Min Output</span>
         <input
