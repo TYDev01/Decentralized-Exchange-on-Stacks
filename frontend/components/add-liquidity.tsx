@@ -42,7 +42,10 @@ export function AddLiquidity({ pools }: AddLiquidityProps) {
           className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
           placeholder="Token 0"
           value={amount0}
-          onChange={(e) => setAmount0(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setAmount0(Number.isNaN(value) ? 0 : value);
+          }}
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -54,7 +57,10 @@ export function AddLiquidity({ pools }: AddLiquidityProps) {
           className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
           placeholder="Token 1"
           value={amount1}
-          onChange={(e) => setAmount1(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setAmount1(Number.isNaN(value) ? 0 : value);
+          }}
         />
       </div>
 
