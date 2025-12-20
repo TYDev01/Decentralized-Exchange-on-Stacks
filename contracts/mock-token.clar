@@ -36,8 +36,18 @@
 	(ok (ft-get-supply Tony-token))
 )
 
+(define-data-var token-uri (optional (string-utf8 256)) none)
+
 (define-read-only (get-token-uri)
-	(ok none)
+    (ok (var-get token-uri))
+)
+
+(define-public (set-token-uri (uri (optional (string-utf8 256))))
+	(begin
+		(asserts! (is-eq tx-sender contract-owner) err-owner-only)
+		(var-set token-uri uri)
+		(ok true)
+	)
 )
 
 (define-public (mint (amount uint) (recipient principal))
