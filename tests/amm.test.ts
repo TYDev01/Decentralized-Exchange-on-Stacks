@@ -102,7 +102,7 @@ describe("AMM Tests", () => {
         "mock-token",
         "mint",
         [Cl.uint(1_000_000_000), Cl.principal(account)],
-        account
+        deployer
       );
 
       expect(mintResultOne.events.length).toBeGreaterThan(0);
@@ -111,7 +111,7 @@ describe("AMM Tests", () => {
         "mock-token-2",
         "mint",
         [Cl.uint(1_000_000_000), Cl.principal(account)],
-        account
+        deployer
       );
 
       expect(mintResultTwo.events.length).toBeGreaterThan(0);
