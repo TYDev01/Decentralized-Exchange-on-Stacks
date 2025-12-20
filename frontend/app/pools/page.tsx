@@ -16,7 +16,7 @@ export default async function Pools() {
   const chainhookPayloads = await readChainhookPayloads();
   const chainhookSummary = summarizeChainhookPayloads(chainhookPayloads);
   const latestActions = getLatestActions(chainhookPayloads);
-  const latestActionEntries = getLatestActionEntries(chainhookPayloads);
+  const latestActionEntries = getLatestActionEntries(chainhookPayloads, 3);
 
   return (
     <main className="flex min-h-screen flex-col gap-8 p-24">

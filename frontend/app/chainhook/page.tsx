@@ -3,6 +3,7 @@ import {
   getLatestActionEntries,
   summarizeChainhookPayloads,
 } from "@/lib/chainhook-events";
+import { ChainhookRegister } from "@/components/chainhook-register";
 
 export default async function ChainhookPage() {
   const payloads = await readChainhookPayloads();
@@ -16,6 +17,7 @@ export default async function ChainhookPage() {
       <div className="text-sm text-gray-400">
         Events stored: {summary.count}
       </div>
+      <ChainhookRegister />
       {latestActions.length > 0 ? (
         <div className="text-sm text-gray-300">
           <div className="font-semibold text-gray-200">Latest Actions</div>

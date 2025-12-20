@@ -15,7 +15,7 @@ import {
 
 
 // REPLACE THESE WITH YOUR OWN
-const AMM_CONTRACT_ADDRESS = "ST2S0QHZC65P50HFAA2P7GD9CJBT48KDJ9DNYGDSK";
+const AMM_CONTRACT_ADDRESS = "ST2WAFNEQ6ZC5C57N59A2WKN2CEG1YQ34BJ9YDPYF";
 const AMM_CONTRACT_NAME = "amm";
 const AMM_CONTRACT_PRINCIPAL = `${AMM_CONTRACT_ADDRESS}.${AMM_CONTRACT_NAME}`;
 
@@ -48,14 +48,28 @@ export type Pool = {
 export async function getAllPools() {
   const pools: Pool[] = [];
 
-  const poolCountResult = await fetchCallReadOnlyFunction({
-    contractAddress: AMM_CONTRACT_ADDRESS,
-    contractName: AMM_CONTRACT_NAME,
-    functionName: "get-pool-count",
-    functionArgs: [],
-    senderAddress: AMM_CONTRACT_ADDRESS,
-    network: STACKS_TESTNET,
-  });
+  let poolCountResult;
+  try {
+    poolCountResult = await fetchCallReadOnlyFunction({
+      contractAddress: AMM_CONTRACT_ADDRESS,
+      contractName: AMM_CONTRACT_NAME,
+      functionName: "get-pool-count",
+      functionArgs: [],
+      senderAddress: AMM_CONTRACT_ADDRESS,
+      network: STACKS_TESTNET,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown read-only error";
+    if (message.includes("NoSuchContract")) {
+      console.warn(
+        `AMM contract not found: ${AMM_CONTRACT_PRINCIPAL}. ` +
+          "Verify deployment and wait for confirmations."
+      );
+      return pools;
+    }
+    throw error;
+  }
 
   if (poolCountResult.type !== "ok") return pools;
   if (poolCountResult.value.type !== "uint") return pools;
