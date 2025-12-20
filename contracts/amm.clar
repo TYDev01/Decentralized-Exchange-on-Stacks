@@ -109,6 +109,9 @@
         })
     ) 
 
+    ;; validate fee bounds
+    (asserts! (> fee u0) ERR_INVALID_FEE)
+    (asserts! (< fee FEES_DENOM) ERR_INVALID_FEE)
     ;; If pool does already exist, throw an error
     (asserts! pool-does-not-exist ERR_POOL_ALREADY_EXISTS)
     ;; If the token-0 principal is not "less than" the token-1 principal, throw an error
