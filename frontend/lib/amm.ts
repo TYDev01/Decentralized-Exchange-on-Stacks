@@ -1,15 +1,16 @@
 import { STACKS_TESTNET } from "@stacks/network";
 import {
   boolCV,
-  bufferCV,
   Cl,
   cvToHex,
   fetchCallReadOnlyFunction,
   hexToCV,
+  bufferCV,
   principalCV,
   PrincipalCV,
   uintCV,
   UIntCV,
+  BufferCV,
 } from "@stacks/transactions";
 
 
@@ -18,20 +19,6 @@ const AMM_CONTRACT_ADDRESS = "ST2S0QHZC65P50HFAA2P7GD9CJBT48KDJ9DNYGDSK";
 const AMM_CONTRACT_NAME = "amm";
 const AMM_CONTRACT_PRINCIPAL = `${AMM_CONTRACT_ADDRESS}.${AMM_CONTRACT_NAME}`;
 
-type ContractEvent = {
-  event_index: number;
-  event_type: string;
-  tx_id: string;
-  contract_log: {
-    contract_id: string;
-    topic: string;
-    value: {
-      hex: string;
-      repr: string;
-    };
-  };
-};
-
 type PoolCV = {
   "token-0": PrincipalCV;
   "token-1": PrincipalCV;
@@ -39,6 +26,10 @@ type PoolCV = {
   liquidity: UIntCV;
   "balance-0": UIntCV;
   "balance-1": UIntCV;
+};
+
+type PoolIndexEntryCV = {
+  "pool-id": BufferCV;
 };
 
 export type Pool = {
@@ -55,91 +46,66 @@ export type Pool = {
 // getAllPools
 // Returns an array of Pool objects
 export async function getAllPools() {
-  let offset = 0;
-  let done = false;
-
   const pools: Pool[] = [];
 
-  // We can fetch 50 events at a time, so we run a loop until we've fetched all events
-  while (!done) {
-    const url = `http://api.testnet.hiro.so/extended/v1/contract/${AMM_CONTRACT_PRINCIPAL}/events?limit=50&offset=${offset}`;
-    const events = (await fetch(url).then((res) => res.json()))
-      .results as ContractEvent[];
+  const poolCountResult = await fetchCallReadOnlyFunction({
+    contractAddress: AMM_CONTRACT_ADDRESS,
+    contractName: AMM_CONTRACT_NAME,
+    functionName: "get-pool-count",
+    functionArgs: [],
+    senderAddress: AMM_CONTRACT_ADDRESS,
+    network: STACKS_TESTNET,
+  });
 
-    // if at any point we're getting less than 50 events back, then this is the last iteration
-    if (events.length < 50) {
-      done = true;
-    }
+  if (poolCountResult.type !== "ok") return pools;
+  if (poolCountResult.value.type !== "uint") return pools;
 
-    // from all events from the smart contract, only keep those which are `smart_contract_log` (remove token transfers, etc)
-    const filteredEvents = events.filter((event: ContractEvent) => {
-      return event.event_type === "smart_contract_log";
+  const poolCount = parseInt(poolCountResult.value.value.toString());
+
+  for (let index = 0; index < poolCount; index += 1) {
+    const poolIdEntryResult = await fetchCallReadOnlyFunction({
+      contractAddress: AMM_CONTRACT_ADDRESS,
+      contractName: AMM_CONTRACT_NAME,
+      functionName: "get-pool-id-by-index",
+      functionArgs: [uintCV(index)],
+      senderAddress: AMM_CONTRACT_ADDRESS,
+      network: STACKS_TESTNET,
     });
 
-    for (const event of filteredEvents) {
-      const contractLog = event.contract_log;
-      if (contractLog.contract_id !== AMM_CONTRACT_PRINCIPAL) continue;
-      if (contractLog.topic !== "print") continue;
+    if (poolIdEntryResult.type !== "ok") continue;
+    if (poolIdEntryResult.value.type !== "some") continue;
+    if (poolIdEntryResult.value.value.type !== "tuple") continue;
 
-      // for each event, only care about ones which have action = "create-pool"
-      const data = hexToCV(contractLog.value.hex);
-      if (data.type !== "tuple") continue;
-      if (data.value["action"] === undefined) continue;
-      if (data.value["action"].type !== "ascii") continue;
-      if (data.value["action"]["value"] !== "create-pool") continue;
-      if (data.value["data"].type !== "tuple") continue;
+    const poolIdEntry = poolIdEntryResult.value.value.value as PoolIndexEntryCV;
+    const poolIdCv = poolIdEntry["pool-id"];
 
-      const poolInitialData = data.value["data"].value as PoolCV;
+    const poolDataResult = await fetchCallReadOnlyFunction({
+      contractAddress: AMM_CONTRACT_ADDRESS,
+      contractName: AMM_CONTRACT_NAME,
+      functionName: "get-pool-data",
+      functionArgs: [poolIdCv],
+      senderAddress: AMM_CONTRACT_ADDRESS,
+      network: STACKS_TESTNET,
+    });
 
-      // get the pool id from the pool initial data
-      const poolIdResult = await fetchCallReadOnlyFunction({
-        contractAddress: AMM_CONTRACT_ADDRESS,
-        contractName: AMM_CONTRACT_NAME,
-        functionName: "get-pool-id",
-        functionArgs: [
-          Cl.tuple({
-            "token-0": poolInitialData["token-0"],
-            "token-1": poolInitialData["token-1"],
-            fee: poolInitialData.fee,
-          }),
-        ],
-        senderAddress: AMM_CONTRACT_ADDRESS,
-        network: STACKS_TESTNET,
-      });
-      if (poolIdResult.type !== "buffer") continue;
-      const poolId = poolIdResult.value;
+    if (poolDataResult.type !== "ok") continue;
+    if (poolDataResult.value.type !== "some") continue;
+    if (poolDataResult.value.value.type !== "tuple") continue;
 
-      // get the pool data from the pool id
-      const poolDataResult = await fetchCallReadOnlyFunction({
-        contractAddress: AMM_CONTRACT_ADDRESS,
-        contractName: AMM_CONTRACT_NAME,
-        functionName: "get-pool-data",
-        functionArgs: [poolIdResult],
-        senderAddress: AMM_CONTRACT_ADDRESS,
-        network: STACKS_TESTNET,
-      });
+    const poolData = poolDataResult.value.value.value as PoolCV;
+    const poolIdHex = poolIdCv.value.toString("hex");
 
-      if (poolDataResult.type !== "ok") continue;
-      if (poolDataResult.value.type !== "some") continue;
-      if (poolDataResult.value.value.type !== "tuple") continue;
+    const pool: Pool = {
+      id: poolIdHex,
+      "token-0": poolData["token-0"].value,
+      "token-1": poolData["token-1"].value,
+      fee: parseInt(poolData["fee"].value.toString()),
+      liquidity: parseInt(poolData["liquidity"].value.toString()),
+      "balance-0": parseInt(poolData["balance-0"].value.toString()),
+      "balance-1": parseInt(poolData["balance-1"].value.toString()),
+    };
 
-      const poolData = poolDataResult.value.value.value as PoolCV;
-
-      // convert the pool data to a Pool object
-      const pool: Pool = {
-        id: poolId,
-        "token-0": poolInitialData["token-0"].value,
-        "token-1": poolInitialData["token-1"].value,
-        fee: parseInt(poolInitialData["fee"].value.toString()),
-        liquidity: parseInt(poolData["liquidity"].value.toString()),
-        "balance-0": parseInt(poolData["balance-0"].value.toString()),
-        "balance-1": parseInt(poolData["balance-1"].value.toString()),
-      };
-
-      pools.push(pool);
-
-      offset = event.event_index;
-    }
+    pools.push(pool);
   }
 
   return pools;
