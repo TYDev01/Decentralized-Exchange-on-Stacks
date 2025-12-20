@@ -41,7 +41,10 @@ export function CreatePool() {
           max={10_000}
           min={0}
           value={fee}
-          onChange={(e) => setFee(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setFee(Number.isNaN(value) ? 0 : value);
+          }}
         />
       </div>
 
