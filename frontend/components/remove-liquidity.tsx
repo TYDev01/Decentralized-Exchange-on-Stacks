@@ -9,6 +9,8 @@ export interface RemoveLiquidityProps {
 }
 
 export function RemoveLiquidity({ pools }: RemoveLiquidityProps) {
+  if (pools.length === 0) return null;
+
   const { userData, handleRemoveLiquidity } = useStacks();
   const [selectedPool, setSelectedPool] = useState<Pool>(pools[0]);
   const [liquidity, setLiquidity] = useState(0);

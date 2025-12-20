@@ -9,6 +9,8 @@ export interface AddLiquidityProps {
 }
 
 export function AddLiquidity({ pools }: AddLiquidityProps) {
+  if (pools.length === 0) return null;
+
   const [selectedPool, setSelectedPool] = useState<Pool>(pools[0]);
   const [amount0, setAmount0] = useState<number>(0);
   const [amount1, setAmount1] = useState<number>(0);

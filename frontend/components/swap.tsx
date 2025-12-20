@@ -9,6 +9,8 @@ export interface SwapProps {
 }
 
 export function Swap({ pools }: SwapProps) {
+  if (pools.length === 0) return null;
+
   const { handleSwap } = useStacks();
   const [fromToken, setFromToken] = useState<string>(pools[0]["token-0"]);
   const [toToken, setToToken] = useState<string>(pools[0]["token-1"]);
