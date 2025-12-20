@@ -5,13 +5,16 @@ import { PoolsList } from "@/components/pools";
 import { RemoveLiquidity } from "@/components/remove-liquidity";
 import { getAllPools } from "@/lib/amm";
 import { readChainhookPayloads } from "@/lib/chainhook-store";
-import { summarizeChainhookPayloads } from "@/lib/chainhook-events";
+import {
+  getLatestActions,
+  summarizeChainhookPayloads,
+} from "@/lib/chainhook-events";
 
 export default async function Pools() {
   const allPools = await getAllPools();
-  const chainhookSummary = summarizeChainhookPayloads(
-    await readChainhookPayloads()
-  );
+  const chainhookPayloads = await readChainhookPayloads();
+  const chainhookSummary = summarizeChainhookPayloads(chainhookPayloads);
+  const latestActions = getLatestActions(chainhookPayloads);
 
   return (
     <main className="flex min-h-screen flex-col gap-8 p-24">
@@ -22,6 +25,11 @@ export default async function Pools() {
           ? ` (latest: ${chainhookSummary.latestAction})`
           : ""}
       </div>
+      {latestActions.length > 0 ? (
+        <div className="text-xs text-gray-500">
+          Recent actions: {latestActions.join(", ")}
+        </div>
+      ) : null}
       <ChainhookRegister />
       <PoolsList pools={allPools} />
       <hr />
