@@ -36,16 +36,33 @@ function addLiquidity(account: string, amount0: number, amount1: number) {
   );
 }
 
-function removeLiquidity(account: string, liquidity: number) {
+function removeLiquidity(
+  account: string,
+  liquidity: number,
+  minAmount0 = 0,
+  minAmount1 = 0
+) {
   return simnet.callPublicFn(
     "amm",
     "remove-liquidity",
-    [mockTokenOne, mockTokenTwo, Cl.uint(500), Cl.uint(liquidity)],
+    [
+      mockTokenOne,
+      mockTokenTwo,
+      Cl.uint(500),
+      Cl.uint(liquidity),
+      Cl.uint(minAmount0),
+      Cl.uint(minAmount1),
+    ],
     account
   );
 }
 
-function swap(account: string, inputAmount: number, zeroForOne: boolean) {
+function swap(
+  account: string,
+  inputAmount: number,
+  zeroForOne: boolean,
+  minOutput = 0
+) {
   return simnet.callPublicFn(
     "amm",
     "swap",
@@ -55,6 +72,7 @@ function swap(account: string, inputAmount: number, zeroForOne: boolean) {
       Cl.uint(500),
       Cl.uint(inputAmount),
       Cl.bool(zeroForOne),
+      Cl.uint(minOutput),
     ],
     account
   );
@@ -198,4 +216,3 @@ describe("AMM Tests", () => {
     expect(tokenTwoAmountWithdrawn).toBeLessThan(withdrawableTokenTwoPreSwap);
   });
 });
-

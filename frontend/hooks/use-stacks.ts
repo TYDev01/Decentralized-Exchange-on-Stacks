@@ -66,7 +66,7 @@ export function useStacks() {
     handleCreatePool,
     handleSwap: async (pool: Pool, amount: number, zeroForOne: boolean) => {
       if (!userData) throw new Error("User not connected");
-      const options = await swap(pool, amount, zeroForOne);
+      const options = await swap(pool, amount, zeroForOne, 0);
       await openContractCall({
         ...options,
         appDetails,
@@ -92,7 +92,7 @@ export function useStacks() {
     },
     handleRemoveLiquidity: async (pool: Pool, liquidity: number) => {
       if (!userData) throw new Error("User not connected");
-      const options = await removeLiquidity(pool, liquidity);
+      const options = await removeLiquidity(pool, liquidity, 0, 0);
       await openContractCall({
         ...options,
         appDetails,
