@@ -21,6 +21,7 @@
 (define-constant ERR_POOL_NOT_FOUND (err u209)) ;; pool does not exist
 (define-constant ERR_INVALID_FEE (err u210)) ;; invalid fee amount
 (define-constant ERR_DIVISION_BY_ZERO (err u211)) ;; division by zero
+(define-constant ERR_SLIPPAGE (err u212)) ;; output below minimum
 
 ;; mappings
 (define-map pools
@@ -185,6 +186,8 @@
 (define-public (add-liquidity (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (amount-0-desired uint) (amount-1-desired uint) (amount-0-min uint) (amount-1-min uint))
     (let
         (
+            (token-0-principal (contract-of token-0))
+            (token-1-principal (contract-of token-1))
             ;; compute the pool id and fetch the current state of the pool from the mapping
             (pool-info {
                 token-0: token-0,
@@ -241,6 +244,7 @@
                 )
             )
         )
+        (asserts! (is-ok (correct-token-ordering token-0-principal token-1-principal)) ERR_INCORRECT_TOKEN_ORDERING)
         (asserts! (> new-liquidity u0) ERR_INSUFFICIENT_LIQUIDITY_MINTED)
 
         ;; transfer tokens from user to pool
@@ -282,6 +286,8 @@
 (define-public (remove-liquidity (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (liquidity uint))
     (let
         (
+            (token-0-principal (contract-of token-0))
+            (token-1-principal (contract-of token-1))
             ;; compute the pool id and fetch the current state of the pool from the mapping
             (pool-info {
                 token-0: token-0,
@@ -305,6 +311,7 @@
 
         )
 
+        (asserts! (is-ok (correct-token-ordering token-0-principal token-1-principal)) ERR_INCORRECT_TOKEN_ORDERING)
         ;; avoid division by zero
         (asserts! (> pool-liquidity u0) ERR_DIVISION_BY_ZERO)
         ;; make sure user owns enough liquidity to withdraw
@@ -344,9 +351,11 @@
 ;; Swaps two tokens in a given pool
 ;; Ensure the pool exists, calculate the amount of tokens to give back to the user, handle the case where the user is swapping for token-0 or token-1
 ;; Transfer input token from user to pool, transfer output token from pool to user, and update mappings as needed
-(define-public (swap (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (input-amount uint) (zero-for-one bool)) 
+(define-public (swap (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (input-amount uint) (zero-for-one bool) (min-output uint)) 
     (let
         (
+            (token-0-principal (contract-of token-0))
+            (token-1-principal (contract-of token-1))
             ;; compute the pool id and fetch the current state of the pool from the mapping
             (pool-info {
                 token-0: token-0,
@@ -386,10 +395,13 @@
             (balance-1-post-swap (if zero-for-one (- balance-1 output-amount-sub-fees) (+ balance-1 input-amount)))
         )
 
+        (asserts! (is-ok (correct-token-ordering token-0-principal token-1-principal)) ERR_INCORRECT_TOKEN_ORDERING)
         ;; make sure user is swapping >0 tokens
         (asserts! (> input-amount u0) ERR_INSUFFICIENT_INPUT_AMOUNT)
         ;; make sure user is getting back >0 tokens
         (asserts! (> output-amount-sub-fees u0) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
+        ;; slippage protection
+        (asserts! (>= output-amount-sub-fees min-output) ERR_SLIPPAGE)
         ;; make sure we can afford to do this swap (have enough output tokens to give back to user)
         (asserts! (< output-amount-sub-fees output-balance) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
 
