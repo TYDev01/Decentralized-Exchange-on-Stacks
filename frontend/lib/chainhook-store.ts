@@ -41,3 +41,8 @@ export async function readChainhookPayloads() {
     return [];
   }
 }
+
+export async function clearChainhookPayloads() {
+  await ensureStoreDir();
+  await fs.writeFile(STORE_FILE, JSON.stringify([], null, 2), "utf8");
+}
