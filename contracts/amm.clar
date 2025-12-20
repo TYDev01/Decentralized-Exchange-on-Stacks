@@ -44,7 +44,14 @@
     } 
     { 
         liquidity: uint
-    }
+    } 
+)
+
+;; pool index for enumeration
+(define-data-var pool-count uint u0)
+(define-map pool-ids
+    uint
+    { pool-id: (buff 20) }
 )
 
 
@@ -120,7 +127,19 @@
     
     ;; Update the `pools` map with the new pool data
     (map-set pools pool-id pool-data)
-    (print { action: "create-pool", data: pool-data})
+    ;; store pool id for enumeration
+    (map-set pool-ids (var-get pool-count) { pool-id: pool-id })
+    (var-set pool-count (+ (var-get pool-count) u1))
+    (print {
+        action: "create-pool",
+        pool-id: pool-id,
+        token-0: (get token-0 pool-data),
+        token-1: (get token-1 pool-data),
+        fee: (get fee pool-data),
+        liquidity: (get liquidity pool-data),
+        balance-0: (get balance-0 pool-data),
+        balance-1: (get balance-1 pool-data)
+    })
     (ok true)
     )
 )
@@ -269,7 +288,18 @@
             balance-1: (+ balance-1 amount-1)
         }))
 
-        (print { action: "add-liquidity", pool-id: pool-id, amount-0: amount-0, amount-1: amount-1, liquidity: (+ user-liquidity new-liquidity) })
+        (print {
+            action: "add-liquidity",
+            pool-id: pool-id,
+            token-0: (get token-0 pool-data),
+            token-1: (get token-1 pool-data),
+            fee: (get fee pool-data),
+            amount-0: amount-0,
+            amount-1: amount-1,
+            liquidity: (+ user-liquidity new-liquidity),
+            balance-0: (+ balance-0 amount-0),
+            balance-1: (+ balance-1 amount-1)
+        })
         (ok true)
     )
 )
@@ -283,7 +313,7 @@
 ;; Removes liquidity from a given pool
 ;; Ensure the pool exists, ensures the user owns enough liquidity as they want to remove, calculate amount of tokens to give back to them
 ;; Transfer tokens from pool to user, and update mappings as needed
-(define-public (remove-liquidity (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (liquidity uint))
+(define-public (remove-liquidity (token-0 <ft-trait>) (token-1 <ft-trait>) (fee uint) (liquidity uint) (min-amount-0 uint) (min-amount-1 uint))
     (let
         (
             (token-0-principal (contract-of token-0))
@@ -319,6 +349,9 @@
         ;; make sure user is getting at least some amount of tokens back
         (asserts! (> amount-0 u0) ERR_INSUFFICIENT_LIQUIDITY_BURNED)
         (asserts! (> amount-1 u0) ERR_INSUFFICIENT_LIQUIDITY_BURNED)
+        ;; slippage protection
+        (asserts! (>= amount-0 min-amount-0) ERR_SLIPPAGE)
+        (asserts! (>= amount-1 min-amount-1) ERR_SLIPPAGE)
 
         ;; transfer tokens from pool to user
         (try! (as-contract (contract-call? token-0 transfer amount-0 THIS_CONTRACT sender none)))
@@ -341,7 +374,18 @@
             balance-0: (- balance-0 amount-0),
             balance-1: (- balance-1 amount-1)
         }))
-        (print { action: "remove-liquidity", pool-id: pool-id, amount-0: amount-0, amount-1: amount-1, liquidity: liquidity })
+        (print {
+            action: "remove-liquidity",
+            pool-id: pool-id,
+            token-0: (get token-0 pool-data),
+            token-1: (get token-1 pool-data),
+            fee: (get fee pool-data),
+            amount-0: amount-0,
+            amount-1: amount-1,
+            liquidity: liquidity,
+            balance-0: (- balance-0 amount-0),
+            balance-1: (- balance-1 amount-1)
+        })
         (ok true)
     )
 )
@@ -416,7 +460,18 @@
             balance-1: balance-1-post-swap
         }))
 
-        (print { action: "swap", pool-id: pool-id, input-amount: input-amount })
+        (print {
+            action: "swap",
+            pool-id: pool-id,
+            token-0: (get token-0 pool-data),
+            token-1: (get token-1 pool-data),
+            fee: (get fee pool-data),
+            input-amount: input-amount,
+            output-amount: output-amount-sub-fees,
+            zero-for-one: zero-for-one,
+            balance-0: balance-0-post-swap,
+            balance-1: balance-1-post-swap
+        })
         (ok true)
     )
 )
@@ -432,5 +487,17 @@
         )
 
         (ok pool-data)
+    )
+)
+
+;; get-pool-count
+(define-read-only (get-pool-count)
+    (ok (var-get pool-count))
+)
+
+;; get-pool-id-by-index
+(define-read-only (get-pool-id-by-index (index uint))
+    (let ((entry (map-get? pool-ids index)))
+        (ok entry)
     )
 )

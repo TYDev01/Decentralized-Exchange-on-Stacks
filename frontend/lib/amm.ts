@@ -207,7 +207,12 @@ export async function addLiquidity(
   return txOptions;
 }
 
-export async function removeLiquidity(pool: Pool, liquidity: number) {
+export async function removeLiquidity(
+  pool: Pool,
+  liquidity: number,
+  minAmount0 = 0,
+  minAmount1 = 0
+) {
   const txOptions = {
     contractAddress: AMM_CONTRACT_ADDRESS,
     contractName: AMM_CONTRACT_NAME,
@@ -217,13 +222,20 @@ export async function removeLiquidity(pool: Pool, liquidity: number) {
       principalCV(pool["token-1"]),
       uintCV(pool.fee),
       uintCV(liquidity),
+      uintCV(minAmount0),
+      uintCV(minAmount1),
     ],
   };
 
   return txOptions;
 }
 
-export async function swap(pool: Pool, amount: number, zeroForOne: boolean) {
+export async function swap(
+  pool: Pool,
+  amount: number,
+  zeroForOne: boolean,
+  minOutput = 0
+) {
   const txOptions = {
     contractAddress: AMM_CONTRACT_ADDRESS,
     contractName: AMM_CONTRACT_NAME,
@@ -234,6 +246,7 @@ export async function swap(pool: Pool, amount: number, zeroForOne: boolean) {
       uintCV(pool.fee),
       uintCV(amount),
       boolCV(zeroForOne),
+      uintCV(minOutput),
     ],
   };
 
