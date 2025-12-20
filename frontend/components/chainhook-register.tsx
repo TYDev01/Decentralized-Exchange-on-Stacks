@@ -8,6 +8,7 @@ export function ChainhookRegister() {
   );
   const [message, setMessage] = useState("");
   const [statusInfo, setStatusInfo] = useState<string | null>(null);
+  const [listInfo, setListInfo] = useState<string | null>(null);
 
   async function registerHook() {
     setStatus("loading");
@@ -54,6 +55,31 @@ export function ChainhookRegister() {
     }
   }
 
+  async function fetchChainhooks() {
+    setListInfo(null);
+    try {
+      const response = await fetch("/api/chainhook/list");
+      const data = await response.json();
+      if (!response.ok) {
+        setListInfo(data?.error || "Failed to fetch chainhooks");
+        return;
+      }
+      const total = data?.chainhooks?.total ?? 0;
+      const items = data?.chainhooks?.results ?? [];
+      const firstName =
+        items.length > 0 ? items[0]?.definition?.name || "unknown" : null;
+      setListInfo(
+        `Registered chainhooks: ${total}${
+          firstName ? ` (first: ${firstName})` : ""
+        }`
+      );
+    } catch (error) {
+      setListInfo(
+        error instanceof Error ? error.message : "Failed to fetch chainhooks"
+      );
+    }
+  }
+
   return (
     <div className="flex flex-col gap-2 text-sm">
       <div className="flex items-center gap-3">
@@ -72,9 +98,17 @@ export function ChainhookRegister() {
         >
           Check Status
         </button>
+        <button
+          type="button"
+          onClick={fetchChainhooks}
+          className="rounded-md bg-gray-700 px-3 py-2 text-white hover:bg-gray-600"
+        >
+          List Chainhooks
+        </button>
         {message ? <span className="text-gray-300">{message}</span> : null}
       </div>
       {statusInfo ? <span className="text-gray-400">{statusInfo}</span> : null}
+      {listInfo ? <span className="text-gray-400">{listInfo}</span> : null}
     </div>
   );
 }

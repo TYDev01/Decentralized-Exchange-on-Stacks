@@ -94,3 +94,20 @@ export function summarizeChainhookPayloads(
     latestTimestamp: latest.receivedAt,
   };
 }
+
+export function getLatestActions(
+  payloads: StoredChainhookPayload[],
+  limit = 5
+) {
+  const actions: string[] = [];
+
+  for (let i = payloads.length - 1; i >= 0 && actions.length < limit; i -= 1) {
+    const payloadActions = extractActionsFromPayload(payloads[i].payload);
+    for (let j = payloadActions.length - 1; j >= 0; j -= 1) {
+      actions.push(payloadActions[j]);
+      if (actions.length >= limit) break;
+    }
+  }
+
+  return actions;
+}
