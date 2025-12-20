@@ -227,6 +227,54 @@ describe("AMM Tests", () => {
     expect(result).toBeErr(Cl.uint(211));
   });
 
+  it("rejects actions for missing pools", () => {
+    const missingPoolAdd = simnet.callPublicFn(
+      "amm",
+      "add-liquidity",
+      [
+        mockTokenOne,
+        mockTokenTwo,
+        Cl.uint(500),
+        Cl.uint(1000),
+        Cl.uint(500),
+        Cl.uint(0),
+        Cl.uint(0),
+      ],
+      alice
+    );
+    expect(missingPoolAdd.result).toBeErr(Cl.uint(209));
+
+    const missingPoolSwap = simnet.callPublicFn(
+      "amm",
+      "swap",
+      [
+        mockTokenOne,
+        mockTokenTwo,
+        Cl.uint(500),
+        Cl.uint(1000),
+        Cl.bool(true),
+        Cl.uint(0),
+      ],
+      alice
+    );
+    expect(missingPoolSwap.result).toBeErr(Cl.uint(209));
+
+    const missingPoolRemove = simnet.callPublicFn(
+      "amm",
+      "remove-liquidity",
+      [
+        mockTokenOne,
+        mockTokenTwo,
+        Cl.uint(500),
+        Cl.uint(1),
+        Cl.uint(0),
+        Cl.uint(0),
+      ],
+      alice
+    );
+    expect(missingPoolRemove.result).toBeErr(Cl.uint(209));
+  });
+
   it("adds initial liquidity in whatever ratio", () => {
     const createPoolRes = createPool();
     expect(createPoolRes.result).toBeOk(Cl.bool(true));
@@ -235,6 +283,13 @@ describe("AMM Tests", () => {
 
     expect(addLiqRes.result).toBeOk(Cl.bool(true));
     expect(addLiqRes.events.length).toBe(3);
+  });
+
+  it("rejects initial liquidity below minimum", () => {
+    createPool();
+
+    const addLiqRes = addLiquidity(alice, 10, 10);
+    expect(addLiqRes.result).toBeErr(Cl.uint(202));
   });
 
   it("requires n+1 add liquidity calls to maintain ratio", () => {
