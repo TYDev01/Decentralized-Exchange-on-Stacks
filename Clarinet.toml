@@ -22,7 +22,7 @@ epoch = 'latest'
 passes = ['check_checker']
 
 [contracts.mock-token-2]
-path = 'contracts/mock-token.clar'
+path = 'contracts/mock-token-2.clar'
 clarity_version = 4
 epoch = 'latest'
 
