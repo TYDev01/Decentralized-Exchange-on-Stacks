@@ -64,9 +64,14 @@ export function useStacks() {
     connectWallet,
     disconnectWallet,
     handleCreatePool,
-    handleSwap: async (pool: Pool, amount: number, zeroForOne: boolean) => {
+    handleSwap: async (
+      pool: Pool,
+      amount: number,
+      zeroForOne: boolean,
+      minOutput: number
+    ) => {
       if (!userData) throw new Error("User not connected");
-      const options = await swap(pool, amount, zeroForOne, 0);
+      const options = await swap(pool, amount, zeroForOne, minOutput);
       await openContractCall({
         ...options,
         appDetails,
@@ -90,9 +95,19 @@ export function useStacks() {
         postConditionMode: PostConditionMode.Allow,
       });
     },
-    handleRemoveLiquidity: async (pool: Pool, liquidity: number) => {
+    handleRemoveLiquidity: async (
+      pool: Pool,
+      liquidity: number,
+      minAmount0: number,
+      minAmount1: number
+    ) => {
       if (!userData) throw new Error("User not connected");
-      const options = await removeLiquidity(pool, liquidity, 0, 0);
+      const options = await removeLiquidity(
+        pool,
+        liquidity,
+        minAmount0,
+        minAmount1
+      );
       await openContractCall({
         ...options,
         appDetails,

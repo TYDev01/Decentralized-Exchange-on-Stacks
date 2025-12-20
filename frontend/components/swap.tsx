@@ -14,6 +14,7 @@ export function Swap({ pools }: SwapProps) {
   const [toToken, setToToken] = useState<string>(pools[0]["token-1"]);
   const [fromAmount, setFromAmount] = useState<number>(0);
   const [estimatedToAmount, setEstimatedToAmount] = useState<bigint>(BigInt(0));
+  const [minOutput, setMinOutput] = useState<number>(0);
 
   const uniqueTokens = pools.reduce((acc, pool) => {
     const token0 = pool["token-0"];
@@ -118,7 +119,10 @@ export function Swap({ pools }: SwapProps) {
           className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
           placeholder="Amount"
           value={fromAmount}
-          onChange={(e) => setFromAmount(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setFromAmount(Number.isNaN(value) ? 0 : value);
+          }}
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -137,6 +141,19 @@ export function Swap({ pools }: SwapProps) {
       </div>
 
       <span>Estimated Output: {estimatedToAmount.toString()}</span>
+      <div className="flex flex-col gap-1">
+        <span className="font-bold">Min Output</span>
+        <input
+          type="number"
+          className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
+          placeholder="Min output"
+          value={minOutput}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setMinOutput(Number.isNaN(value) ? 0 : value);
+          }}
+        />
+      </div>
 
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded  disabled:bg-gray-700 disabled:cursor-not-allowed"
@@ -150,7 +167,7 @@ export function Swap({ pools }: SwapProps) {
           if (!pool) return;
 
           const zeroForOne = fromToken === pool["token-0"];
-          handleSwap(pool, fromAmount, zeroForOne);
+          handleSwap(pool, fromAmount, zeroForOne, minOutput);
         }}
       >
         Swap

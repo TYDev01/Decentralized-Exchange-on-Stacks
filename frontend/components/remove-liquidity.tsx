@@ -13,6 +13,8 @@ export function RemoveLiquidity({ pools }: RemoveLiquidityProps) {
   const [selectedPool, setSelectedPool] = useState<Pool>(pools[0]);
   const [liquidity, setLiquidity] = useState(0);
   const [userTotalLiquidity, setUserTotalLiquidity] = useState(0);
+  const [minAmount0, setMinAmount0] = useState(0);
+  const [minAmount1, setMinAmount1] = useState(0);
 
   async function fetchUserLiquidity() {
     const stxAddress = userData?.address;
@@ -55,7 +57,38 @@ export function RemoveLiquidity({ pools }: RemoveLiquidityProps) {
           type="text"
           className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
           value={liquidity}
-          onChange={(e) => setLiquidity(parseInt(e.target.value))}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setLiquidity(Number.isNaN(value) ? 0 : value);
+          }}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-bold">
+          Min {selectedPool["token-0"].split(".")[1]} Output
+        </span>
+        <input
+          type="text"
+          className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
+          value={minAmount0}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setMinAmount0(Number.isNaN(value) ? 0 : value);
+          }}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <span className="font-bold">
+          Min {selectedPool["token-1"].split(".")[1]} Output
+        </span>
+        <input
+          type="text"
+          className="border-2 border-gray-500 rounded-lg px-4 py-2 text-black"
+          value={minAmount1}
+          onChange={(e) => {
+            const value = Number(e.target.value);
+            setMinAmount1(Number.isNaN(value) ? 0 : value);
+          }}
         />
       </div>
 
@@ -73,7 +106,9 @@ export function RemoveLiquidity({ pools }: RemoveLiquidityProps) {
       <button
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-700 disabled:cursor-not-allowed"
         disabled={liquidity > userTotalLiquidity}
-        onClick={() => handleRemoveLiquidity(selectedPool, liquidity)}
+        onClick={() =>
+          handleRemoveLiquidity(selectedPool, liquidity, minAmount0, minAmount1)
+        }
       >
         Remove Liquidity
       </button>

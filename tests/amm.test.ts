@@ -220,6 +220,13 @@ describe("AMM Tests", () => {
     expect(result).toBeErr(Cl.uint(205));
   });
 
+  it("rejects remove-liquidity when pool liquidity is zero", () => {
+    createPool();
+
+    const { result } = removeLiquidity(alice, 1, 0, 0);
+    expect(result).toBeErr(Cl.uint(211));
+  });
+
   it("adds initial liquidity in whatever ratio", () => {
     const createPoolRes = createPool();
     expect(createPoolRes.result).toBeOk(Cl.bool(true));
