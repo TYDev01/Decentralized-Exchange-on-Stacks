@@ -4,7 +4,7 @@ import path from "path";
 const STORE_DIR = path.join(process.cwd(), ".chainhook");
 const STORE_FILE = path.join(STORE_DIR, "contract-logs.json");
 
-type StoredChainhookPayload = {
+export type StoredChainhookPayload = {
   receivedAt: string;
   payload: unknown;
 };
