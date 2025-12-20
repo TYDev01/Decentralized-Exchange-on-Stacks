@@ -111,3 +111,21 @@ export function getLatestActions(
 
   return actions;
 }
+
+export function getLatestActionEntries(
+  payloads: StoredChainhookPayload[],
+  limit = 5
+) {
+  const entries: { action: string; receivedAt: string }[] = [];
+
+  for (let i = payloads.length - 1; i >= 0 && entries.length < limit; i -= 1) {
+    const payload = payloads[i];
+    const payloadActions = extractActionsFromPayload(payload.payload);
+    for (let j = payloadActions.length - 1; j >= 0; j -= 1) {
+      entries.push({ action: payloadActions[j], receivedAt: payload.receivedAt });
+      if (entries.length >= limit) break;
+    }
+  }
+
+  return entries;
+}
