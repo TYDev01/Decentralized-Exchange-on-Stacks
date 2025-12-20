@@ -167,14 +167,14 @@
 (define-private (get-amounts (amount-0-desired uint) (amount-1-desired uint) (amount-0-min uint) (amount-1-min uint) (balance-0 uint) (balance-1 uint)) 
     (let
         (
+            (non-zero-balance-0 (asserts! (> balance-0 u0) ERR_DIVISION_BY_ZERO))
+            (non-zero-balance-1 (asserts! (> balance-1 u0) ERR_DIVISION_BY_ZERO))
             ;; calculate ideal amount of token-1 that should be provided based on the current ratio of reserves if `amount-0-desired` can be fully used
             (amount-1-given-0 (/ (* amount-0-desired balance-1) balance-0))
             ;; calculate ideal amount of token-0 that should be provided based on the current ratio of reserves if `amount-1-desired` can be fully used
             (amount-0-given-1 (/ (* amount-1-desired balance-0) balance-1))
         )
 
-        (asserts! (> balance-0 u0) ERR_DIVISION_BY_ZERO)
-        (asserts! (> balance-1 u0) ERR_DIVISION_BY_ZERO)
         (if 
             ;; if ideal amount-1 is less than the desired amount-1
             (<= amount-1-given-0 amount-1-desired)
@@ -429,30 +429,30 @@
 
             ;; compute the output amount by solving xy = k
             (output-amount (- output-balance (/ k (+ input-balance input-amount))))
-            ;; calculate fees to charge as a % of the output amount
-            (fees (/ (* output-amount fee) FEES_DENOM))
+            ;; calculate fees to charge as a % of the output amount (fees remain in pool)
+            (fee-amount (/ (* output-amount fee) FEES_DENOM))
             ;; subtract the fees from the output amount
-            (output-amount-sub-fees (- output-amount fees))
+            (output-amount-net (- output-amount fee-amount))
 
             ;; compute the new balances of the pool after the swap
-            (balance-0-post-swap (if zero-for-one (+ balance-0 input-amount) (- balance-0 output-amount-sub-fees)))
-            (balance-1-post-swap (if zero-for-one (- balance-1 output-amount-sub-fees) (+ balance-1 input-amount)))
+            (balance-0-post-swap (if zero-for-one (+ balance-0 input-amount) (- balance-0 output-amount-net)))
+            (balance-1-post-swap (if zero-for-one (- balance-1 output-amount-net) (+ balance-1 input-amount)))
         )
 
         (asserts! (is-ok (correct-token-ordering token-0-principal token-1-principal)) ERR_INCORRECT_TOKEN_ORDERING)
         ;; make sure user is swapping >0 tokens
         (asserts! (> input-amount u0) ERR_INSUFFICIENT_INPUT_AMOUNT)
         ;; make sure user is getting back >0 tokens
-        (asserts! (> output-amount-sub-fees u0) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
+        (asserts! (> output-amount-net u0) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
         ;; slippage protection
-        (asserts! (>= output-amount-sub-fees min-output) ERR_SLIPPAGE)
+        (asserts! (>= output-amount-net min-output) ERR_SLIPPAGE)
         ;; make sure we can afford to do this swap (have enough output tokens to give back to user)
-        (asserts! (< output-amount-sub-fees output-balance) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
+        (asserts! (< output-amount-net output-balance) ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP)
 
         ;; transfer input token from user to pool
         (try! (contract-call? input-token transfer input-amount sender THIS_CONTRACT none))
         ;; transfer output token from pool to user
-        (try! (as-contract (contract-call? output-token transfer output-amount-sub-fees THIS_CONTRACT sender none)))
+        (try! (as-contract (contract-call? output-token transfer output-amount-net THIS_CONTRACT sender none)))
 
         ;; update pool balances (x and y)
         (map-set pools pool-id (merge pool-data {
@@ -467,7 +467,8 @@
             token-1: (get token-1 pool-data),
             fee: (get fee pool-data),
             input-amount: input-amount,
-            output-amount: output-amount-sub-fees,
+            output-amount: output-amount-net,
+            fee-amount: fee-amount,
             zero-for-one: zero-for-one,
             balance-0: balance-0-post-swap,
             balance-1: balance-1-post-swap
