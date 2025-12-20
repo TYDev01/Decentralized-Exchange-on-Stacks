@@ -1,4 +1,4 @@
-import { ChainhookClient } from "@hirosystems/chainhook-client";
+import { ChainhookClient } from "@hirosystems/chainhooks-client";
 
 type ChainhookConfig = {
   baseUrl: string;
