@@ -20,6 +20,22 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Chainhook Configuration
+
+Set the following environment variables before registering hooks:
+
+```bash
+CHAINHOOK_URL=https://your-chainhook-host
+CHAINHOOK_API_KEY=your-api-key-if-needed
+AMM_CONTRACT_ID=STX_ADDRESS.amm
+CHAINHOOK_CALLBACK_URL=https://your-app-host/api/chainhook/webhook
+CHAINHOOK_CHAIN=testnet
+```
+
+Notes:
+- `CHAINHOOK_API_KEY` is optional.
+- `CHAINHOOK_CALLBACK_URL` should be reachable by the Chainhook service.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
