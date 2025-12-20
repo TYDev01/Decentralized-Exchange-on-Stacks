@@ -16,7 +16,7 @@ export async function POST() {
 
   if (!baseUrl || !contractId || !callbackUrl) {
     return NextResponse.json(
-      { error: "Missing CHAINHOOK_URL, AMM_CONTRACT_ID, or CHAINHOOK_CALLBACK_URL" },
+      { error: "Missing AMM_CONTRACT_ID or CHAINHOOK_CALLBACK_URL" },
       { status: 400 }
     );
   }
