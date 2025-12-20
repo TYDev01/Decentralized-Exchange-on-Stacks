@@ -153,6 +153,8 @@
             (amount-0-given-1 (/ (* amount-1-desired balance-0) balance-1))
         )
 
+        (asserts! (> balance-0 u0) ERR_DIVISION_BY_ZERO)
+        (asserts! (> balance-1 u0) ERR_DIVISION_BY_ZERO)
         (if 
             ;; if ideal amount-1 is less than the desired amount-1
             (<= amount-1-given-0 amount-1-desired)
@@ -299,6 +301,8 @@
 
         )
 
+        ;; avoid division by zero
+        (asserts! (> pool-liquidity u0) ERR_DIVISION_BY_ZERO)
         ;; make sure user owns enough liquidity to withdraw
         (asserts! (>= user-liquidity liquidity) ERR_INSUFFICIENT_LIQUIDITY_OWNED)
         ;; make sure user is getting at least some amount of tokens back
