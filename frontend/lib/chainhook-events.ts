@@ -7,35 +7,66 @@ type ChainhookSummary = {
   latestTimestamp?: string;
 };
 
-function extractEventList(payload: unknown): unknown[] {
-  if (!payload || typeof payload !== "object") return [];
-  const root = payload as Record<string, unknown>;
+type ContractLogValue = {
+  hex?: string;
+  repr?: string;
+  raw?: string;
+};
 
-  const directEvents = root.events;
-  if (Array.isArray(directEvents)) return directEvents;
+function collectContractLogValues(payload: unknown): ContractLogValue[] {
+  const results: ContractLogValue[] = [];
+  const queue: unknown[] = [payload];
 
-  const nestedPayload = root.payload;
-  if (nestedPayload && typeof nestedPayload === "object") {
-    const nestedEvents = (nestedPayload as Record<string, unknown>).events;
-    if (Array.isArray(nestedEvents)) return nestedEvents;
+  while (queue.length > 0) {
+    const current = queue.pop();
+    if (!current || typeof current !== "object") continue;
+
+    if (Array.isArray(current)) {
+      for (const item of current) queue.push(item);
+      continue;
+    }
+
+    const record = current as Record<string, unknown>;
+    const contractLog = record.contract_log as Record<string, unknown> | undefined;
+    if (contractLog) {
+      const value = contractLog.value as Record<string, unknown> | string | undefined;
+      if (value && typeof value === "object") {
+        results.push({
+          hex: value.hex as string | undefined,
+          repr: value.repr as string | undefined,
+        });
+      } else if (typeof value === "string") {
+        results.push({ raw: value });
+      }
+    }
+
+    if (record.type === "contract_log") {
+      const metadata = record.metadata as Record<string, unknown> | undefined;
+      const value = metadata?.value as Record<string, unknown> | string | undefined;
+      if (value && typeof value === "object") {
+        results.push({
+          hex: value.hex as string | undefined,
+          repr: value.repr as string | undefined,
+        });
+      } else if (typeof value === "string") {
+        results.push({ raw: value });
+      }
+    }
+
+    for (const value of Object.values(record)) {
+      queue.push(value);
+    }
   }
 
-  return [];
+  return results;
 }
 
 function extractActionsFromPayload(payload: unknown): string[] {
-  const events = extractEventList(payload);
+  const values = collectContractLogValues(payload);
   const actions: string[] = [];
 
-  for (const event of events) {
-    if (!event || typeof event !== "object") continue;
-    const contractLog = (event as Record<string, unknown>).contract_log as
-      | Record<string, unknown>
-      | undefined;
-    if (!contractLog) continue;
-
-    const value = contractLog.value as Record<string, unknown> | undefined;
-    const hex = value?.hex as string | undefined;
+  for (const value of values) {
+    const hex = value.hex || (value.raw?.startsWith("0x") ? value.raw : undefined);
     if (!hex) continue;
 
     const cv = hexToCV(hex);
