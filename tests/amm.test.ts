@@ -151,6 +151,16 @@ describe("AMM Tests", () => {
     expect(maxFeeResult.result).toBeErr(Cl.uint(210));
   });
 
+  it("rejects incorrect token ordering for pool creation", () => {
+    const { result } = simnet.callPublicFn(
+      "amm",
+      "create-pool",
+      [mockTokenTwo, mockTokenOne, Cl.uint(500)],
+      alice
+    );
+    expect(result).toBeErr(Cl.uint(201));
+  });
+
   it("adds initial liquidity in whatever ratio", () => {
     const createPoolRes = createPool();
     expect(createPoolRes.result).toBeOk(Cl.bool(true));
