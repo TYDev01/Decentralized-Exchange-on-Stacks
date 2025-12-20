@@ -215,4 +215,29 @@ describe("AMM Tests", () => {
     );
     expect(tokenTwoAmountWithdrawn).toBeLessThan(withdrawableTokenTwoPreSwap);
   });
+
+  it("rejects swaps when min-output exceeds actual output", () => {
+    createPool();
+    addLiquidity(alice, 1000000, 500000);
+
+    const { result } = swap(alice, 100000, true, 50000);
+    expect(result).toBeErr(Cl.uint(212));
+  });
+
+  it("rejects remove-liquidity when min outputs are not met", () => {
+    createPool();
+    addLiquidity(alice, 1000000, 500000);
+
+    const { result: poolId } = getPoolId();
+    const aliceLiquidity = simnet.callReadOnlyFn(
+      "amm",
+      "get-position-liquidity",
+      [poolId, Cl.principal(alice)],
+      alice
+    );
+    expect(aliceLiquidity.result).toBeOk(Cl.uint(706106));
+
+    const { result } = removeLiquidity(alice, 706106, 1_000_000_000, 1_000_000_000);
+    expect(result).toBeErr(Cl.uint(212));
+  });
 });
