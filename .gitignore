@@ -1,1 +1,3 @@
 .chainhook/
+settings/Mainnet.toml
+settings/Testnet.toml

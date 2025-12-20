@@ -42,6 +42,8 @@ Notes:
   - `GET /api/chainhook/list` lists existing hooks.
   - `GET /api/chainhook/events?limit=10` reads stored payloads.
   - `POST /api/chainhook/clear` clears stored payloads.
+
+You can view a basic Chainhook dashboard at `/chainhook` in the app.
 - `CHAINHOOK_CALLBACK_URL` should be reachable by the Chainhook service.
 
 ## Learn More
