@@ -18,6 +18,9 @@
 (define-constant ERR_INSUFFICIENT_LIQUIDITY_FOR_SWAP (err u206)) ;; insufficient liquidity in pool for swap
 (define-constant ERR_INSUFFICIENT_1_AMOUNT (err u207)) ;; insufficient amount of token 1 for swap
 (define-constant ERR_INSUFFICIENT_0_AMOUNT (err u208)) ;; insufficient amount of token 0 for swap
+(define-constant ERR_POOL_NOT_FOUND (err u209)) ;; pool does not exist
+(define-constant ERR_INVALID_FEE (err u210)) ;; invalid fee amount
+(define-constant ERR_DIVISION_BY_ZERO (err u211)) ;; division by zero
 
 ;; mappings
 (define-map pools
@@ -184,7 +187,7 @@
                 fee: fee
             })
             (pool-id (get-pool-id pool-info))
-            (pool-data (unwrap! (map-get? pools pool-id) (err u0)))
+            (pool-data (unwrap! (map-get? pools pool-id) ERR_POOL_NOT_FOUND))
             (sender tx-sender)
             
             (pool-liquidity (get liquidity pool-data))
@@ -202,7 +205,7 @@
                     ;; if it is the first time, we can add tokens in whatever amounts we want
                     {amount-0: amount-0-desired, amount-1: amount-1-desired}
                     ;; otherwise, we use get-amounts to calculate the amounts of tokens to add within the constraints
-                    (unwrap! (get-amounts amount-0-desired amount-1-desired amount-0-min amount-1-min balance-0 balance-1) (err u0))
+                    (try! (get-amounts amount-0-desired amount-1-desired amount-0-min amount-1-min balance-0 balance-1))
                 )
             )
             (amount-0 (get amount-0 amounts))
@@ -277,7 +280,7 @@
                 fee: fee
             })
             (pool-id (get-pool-id pool-info))
-            (pool-data (unwrap! (map-get? pools pool-id) (err u0)))
+            (pool-data (unwrap! (map-get? pools pool-id) ERR_POOL_NOT_FOUND))
             (sender tx-sender)
 
             (pool-liquidity (get liquidity pool-data))
@@ -340,7 +343,7 @@
                 fee: fee
             })
             (pool-id (get-pool-id pool-info))
-            (pool-data (unwrap! (map-get? pools pool-id) (err u0)))
+            (pool-data (unwrap! (map-get? pools pool-id) ERR_POOL_NOT_FOUND))
             (sender tx-sender)
 
             (pool-liquidity (get liquidity pool-data))
