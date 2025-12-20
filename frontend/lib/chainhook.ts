@@ -39,6 +39,9 @@ export function buildContractLogHook(
         },
       ],
     },
+    options: {
+      decode_clarity_values: true,
+    },
     action: {
       type: "http_post",
       url: input.callbackUrl,
