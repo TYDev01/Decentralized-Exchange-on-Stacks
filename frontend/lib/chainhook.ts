@@ -1,4 +1,7 @@
-import { ChainhookClient } from "@hirosystems/chainhooks-client";
+import {
+  ChainhooksClient,
+  ChainhookDefinition,
+} from "@hirosystems/chainhooks-client";
 
 type ChainhookConfig = {
   baseUrl: string;
@@ -8,29 +11,37 @@ type ChainhookConfig = {
 type ContractLogHookInput = {
   contractId: string;
   callbackUrl: string;
-  chain: "mainnet" | "testnet" | "devnet";
+  network: "mainnet" | "testnet";
 };
 
 export function createChainhookClient(config: ChainhookConfig) {
-  const client = new (ChainhookClient as unknown as {
-    new (options: { baseUrl: string; apiKey?: string }): unknown;
-  })({
+  const client = new ChainhooksClient({
     baseUrl: config.baseUrl,
     apiKey: config.apiKey,
   });
 
-  return client as {
-    register: (hook: unknown) => Promise<unknown>;
-  };
+  return client;
 }
 
-export function buildContractLogHook(input: ContractLogHookInput) {
+export function buildContractLogHook(
+  input: ContractLogHookInput
+): ChainhookDefinition {
   return {
-    name: `amm-${input.chain}-contract-logs`,
-    version: 1,
-    chain: input.chain,
-    event_types: ["smart_contract_log"],
-    contract_id: input.contractId,
-    webhook_url: input.callbackUrl,
+    name: `amm-${input.network}-contract-logs`,
+    version: "1",
+    chain: "stacks",
+    network: input.network,
+    filters: {
+      events: [
+        {
+          type: "contract_log",
+          contract_identifier: input.contractId,
+        },
+      ],
+    },
+    action: {
+      type: "http_post",
+      url: input.callbackUrl,
+    },
   };
 }

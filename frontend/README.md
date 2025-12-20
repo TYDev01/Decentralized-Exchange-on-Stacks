@@ -29,7 +29,7 @@ CHAINHOOK_URL=https://your-chainhook-host
 CHAINHOOK_API_KEY=your-api-key-if-needed
 AMM_CONTRACT_ID=STX_ADDRESS.amm
 CHAINHOOK_CALLBACK_URL=https://your-app-host/api/chainhook/webhook
-CHAINHOOK_CHAIN=testnet
+CHAINHOOK_NETWORK=testnet
 ```
 
 Notes:
