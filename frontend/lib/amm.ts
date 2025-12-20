@@ -20,6 +20,25 @@ const AMM_CONTRACT_ADDRESS =
   "ST2WAFNEQ6ZC5C57N59A2WKN2CEG1YQ34BJ9YDPYF";
 const AMM_CONTRACT_NAME =
   process.env.NEXT_PUBLIC_AMM_CONTRACT_NAME || "amm";
+
+const READ_ONLY_RETRIES = 2;
+const READ_ONLY_RETRY_DELAY_MS = 400;
+
+async function fetchReadOnlyWithRetry(
+  options: Parameters<typeof fetchCallReadOnlyFunction>[0]
+) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= READ_ONLY_RETRIES; attempt += 1) {
+    try {
+      return await fetchCallReadOnlyFunction(options);
+    } catch (error) {
+      lastError = error;
+      if (attempt === READ_ONLY_RETRIES) break;
+      await new Promise((resolve) => setTimeout(resolve, READ_ONLY_RETRY_DELAY_MS));
+    }
+  }
+  throw lastError;
+}
 const AMM_CONTRACT_PRINCIPAL = `${AMM_CONTRACT_ADDRESS}.${AMM_CONTRACT_NAME}`;
 
 type PoolCV = {
@@ -53,7 +72,7 @@ export async function getAllPools() {
 
   let poolCountResult;
   try {
-    poolCountResult = await fetchCallReadOnlyFunction({
+    poolCountResult = await fetchReadOnlyWithRetry({
       contractAddress: AMM_CONTRACT_ADDRESS,
       contractName: AMM_CONTRACT_NAME,
       functionName: "get-pool-count",
@@ -80,7 +99,7 @@ export async function getAllPools() {
   const poolCount = parseInt(poolCountResult.value.value.toString());
 
   for (let index = 0; index < poolCount; index += 1) {
-    const poolIdEntryResult = await fetchCallReadOnlyFunction({
+    const poolIdEntryResult = await fetchReadOnlyWithRetry({
       contractAddress: AMM_CONTRACT_ADDRESS,
       contractName: AMM_CONTRACT_NAME,
       functionName: "get-pool-id-by-index",
@@ -96,7 +115,7 @@ export async function getAllPools() {
     const poolIdEntry = poolIdEntryResult.value.value.value as PoolIndexEntryCV;
     const poolIdCv = poolIdEntry["pool-id"];
 
-    const poolDataResult = await fetchCallReadOnlyFunction({
+    const poolDataResult = await fetchReadOnlyWithRetry({
       contractAddress: AMM_CONTRACT_ADDRESS,
       contractName: AMM_CONTRACT_NAME,
       functionName: "get-pool-data",

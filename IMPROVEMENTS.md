@@ -32,9 +32,9 @@ This list is based on a pass over contracts, tests, and the Next.js frontend. It
   - `swap` logs (to update pool reserves).
 - [x] Persist Chainhook results in a store (SQLite, Redis, or a simple JSON file during dev) and have the frontend read from it instead of scanning events.
 - [x] Provide configuration for Chainhook endpoints and contract IDs via env vars (`NEXT_PUBLIC_*`) instead of hard-coded addresses.
-- [ ] Switch Hiro API calls to `https://` and add basic fetch error handling and retries.
+- [x] Switch Hiro API calls to `https://` and add basic fetch error handling and retries.
 - [x] Fix `PoolListItem` explorer links: use proper explorer URLs for contracts instead of `/txid/` paths.
-- [ ] Avoid crashing when `pools` is empty: components rely on `pools[0]` without guards.
+- [x] Avoid crashing when `pools` is empty: components rely on `pools[0]` without guards.
 - [x] Validate numeric inputs to avoid `NaN` when fields are cleared; provide user-friendly error states.
 - [x] Update swap estimation to guard against underflow when `fromAmount > pool balance`, and show a clear warning.
 - [x] Use bigint-safe math for estimate outputs and display rounding behavior clearly.
